@@ -54,6 +54,9 @@ export default class MultiSlider extends React.Component {
     minMarkerOverlapDistance: 0,
     minMarkerOverlapStepDistance: 0,
     testID: '',
+    hidePreviousSteps: false,
+    restrictMovementsLeft: false,
+    restrictMovementsRight: false
   };
 
   constructor(props) {
@@ -182,6 +185,18 @@ export default class MultiSlider extends React.Component {
   };
 
   moveOne = gestureState => {
+    if (this.props.moveLimitOne === this.props.values[0]) {
+      if(this.props.restrictMovementsLeft && gestureState.dx < 0) {
+        return;
+      }
+      if(this.props.restrictMovementsRight && gestureState.dx > 0) {
+        return;
+      }
+    }
+    if (!this.props.enabledOne) {
+      return;
+    }
+
     if (!this.props.enabledOne) {
       return;
     }

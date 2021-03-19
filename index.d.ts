@@ -94,6 +94,9 @@ export interface MultiSliderProps {
     imageBackgroundSource?: string;
     enableLabel?: boolean;
     vertical?: boolean;
+    hidePreviousSteps?: boolean;
+    restrictMovementsLeft?: boolean;
+    restrictMovementsRight?: boolean;
 }
 
 export default class MultiSlider extends React.Component<MultiSliderProps> {}
