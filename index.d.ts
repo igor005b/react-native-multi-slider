@@ -97,6 +97,7 @@ export interface MultiSliderProps {
     hidePreviousSteps?: boolean;
     restrictMovementsLeft?: boolean;
     restrictMovementsRight?: boolean;
+    moveLimitOne: number;
 }
 
 export default class MultiSlider extends React.Component<MultiSliderProps> {}

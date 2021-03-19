@@ -56,7 +56,8 @@ export default class MultiSlider extends React.Component {
     testID: '',
     hidePreviousSteps: false,
     restrictMovementsLeft: false,
-    restrictMovementsRight: false
+    restrictMovementsRight: false,
+    moveLimitOne: null
   };
 
   constructor(props) {
