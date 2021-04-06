@@ -124,6 +124,11 @@ export default class MultiSlider extends React.Component {
     this.subscribePanResponder();
   }
 
+  componentDidMount() {
+    const { positionOne, positionTwo } = this.state;
+    this.props.onMarkersPosition([positionOne, positionTwo]);
+  }
+
   subscribePanResponder = () => {
     var customPanResponder = (start, move, end) => {
       return PanResponder.create({
@@ -186,88 +191,85 @@ export default class MultiSlider extends React.Component {
   };
 
   moveOne = gestureState => {
-    if (this.props.moveLimitOne === this.props.values[0]) {
-      if(this.props.restrictMovementsLeft && gestureState.dx < 0) {
+      if (this.props.moveLimitOne === this.props.values[0]) {
+        if(this.props.restrictMovementsLeft && gestureState.dx < 0) {
+          return;
+        }
+        if(this.props.restrictMovementsRight && gestureState.dx > 0) {
+          return;
+        }
+      }
+      if (!this.props.enabledOne) {
         return;
       }
-      if(this.props.restrictMovementsRight && gestureState.dx > 0) {
-        return;
-      }
-    }
-    if (!this.props.enabledOne) {
-      return;
-    }
 
-    if (!this.props.enabledOne) {
-      return;
-    }
 
-    const accumDistance = this.props.vertical
-      ? -gestureState.dy
-      : gestureState.dx;
-    const accumDistanceDisplacement = this.props.vertical
-      ? gestureState.dx
-      : gestureState.dy;
+      const accumDistance = this.props.vertical
+        ? -gestureState.dy
+        : gestureState.dx;
+      const accumDistanceDisplacement = this.props.vertical
+        ? gestureState.dx
+        : gestureState.dy;
 
-    const unconfined = I18nManager.isRTL
-      ? this.state.pastOne - accumDistance
-      : accumDistance + this.state.pastOne;
-    var bottom = this.props.markerSize / 2;
-    var trueTop =
-      this.state.positionTwo -
-      (this.props.allowOverlap
-        ? 0
-        : this.props.minMarkerOverlapDistance > 0
-        ? this.props.minMarkerOverlapDistance
-        : (this.props.minMarkerOverlapStepDistance || 1) * this.stepLength);
-    var top =
-      trueTop === 0
-        ? 0
-        : trueTop || this.props.sliderLength - this.props.markerSize / 2;
-    var confined =
-      unconfined < bottom ? bottom : unconfined > top ? top : unconfined;
-    var slipDisplacement = this.props.touchDimensions.slipDisplacement;
+      const unconfined = I18nManager.isRTL
+        ? this.state.pastOne - accumDistance
+        : accumDistance + this.state.pastOne;
+      var bottom = this.props.markerSize / 2;
+      var trueTop =
+        this.state.positionTwo -
+        (this.props.allowOverlap
+          ? 0
+          : this.props.minMarkerOverlapDistance > 0
+          ? this.props.minMarkerOverlapDistance
+          : (this.props.minMarkerOverlapStepDistance || 1) * this.stepLength);
+      var top =
+        trueTop === 0
+          ? 0
+          : trueTop || this.props.sliderLength - this.props.markerSize / 2;
+      var confined =
+        unconfined < bottom ? bottom : unconfined > top ? top : unconfined;
+      var slipDisplacement = this.props.touchDimensions.slipDisplacement;
 
-    if (
-      Math.abs(accumDistanceDisplacement) < slipDisplacement ||
-      !slipDisplacement
-    ) {
-      var value = positionToValue(
-        confined,
-        this.optionsArray,
-        this.props.sliderLength,
-        this.props.markerSize,
-      );
-      var snapped = valueToPosition(
-        value,
-        this.optionsArray,
-        this.props.sliderLength,
-        this.props.markerSize,
-      );
-      this.setState({
-        positionOne: this.props.snapped ? snapped : confined,
-      });
-
-      if (value !== this.state.valueOne) {
-        this.setState(
-          {
-            valueOne: value,
-          },
-          () => {
-            var change = [this.state.valueOne];
-            if (this.state.valueTwo) {
-              change.push(this.state.valueTwo);
-            }
-            this.props.onValuesChange(change);
-
-            this.props.onMarkersPosition([
-              this.state.positionOne,
-              this.state.positionTwo,
-            ]);
-          },
+      if (
+        Math.abs(accumDistanceDisplacement) < slipDisplacement ||
+        !slipDisplacement
+      ) {
+        var value = positionToValue(
+          confined,
+          this.optionsArray,
+          this.props.sliderLength,
+          this.props.markerSize,
         );
+        var snapped = valueToPosition(
+          value,
+          this.optionsArray,
+          this.props.sliderLength,
+          this.props.markerSize,
+        );
+        this.setState({
+          positionOne: this.props.snapped ? snapped : confined,
+        });
+
+        if (value !== this.state.valueOne) {
+          this.setState(
+            {
+              valueOne: value,
+            },
+            () => {
+              var change = [this.state.valueOne];
+              if (this.state.valueTwo) {
+                change.push(this.state.valueTwo);
+              }
+              this.props.onValuesChange(change);
+
+              this.props.onMarkersPosition([
+                this.state.positionOne,
+                this.state.positionTwo,
+              ]);
+            },
+          );
+        }
       }
-    }
   };
 
   moveTwo = gestureState => {
@@ -479,8 +481,8 @@ export default class MultiSlider extends React.Component {
     return this.optionsArray.map((number, index) => {
       var step = this.stepsAs[index];
       const markerStyle = (this.props.hidePreviousSteps && this.state.valueOne > number) ? 
-        { display: 'none' } :
-        { display: 'flex' };
+        { opacity: 0 } :
+        { opacity: 1 };
       return (
         <View
           key={number}
@@ -751,6 +753,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
+    elevation: 100
   },
   topMarkerContainer: {
     zIndex: 1,
@@ -771,6 +775,7 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: '#0000008c',
     borderRadius: 3,
+    elevation: 7
   },
   stepLabel: {
     position: 'absolute',
