@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
-    elevation: 100
+    elevation: 1000
   },
   topMarkerContainer: {
     zIndex: 1,
