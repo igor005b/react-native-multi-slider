@@ -7,6 +7,7 @@ import {
   View,
   Platform,
   Dimensions,
+  Animated,
   I18nManager,
   ImageBackground,
 } from 'react-native';
@@ -57,7 +58,8 @@ export default class MultiSlider extends React.Component {
     hidePreviousSteps: false,
     restrictMovementsLeft: false,
     restrictMovementsRight: false,
-    moveLimitOne: null
+    moveLimitOne: null,
+    previousResults: null
   };
 
   constructor(props) {
@@ -202,7 +204,6 @@ export default class MultiSlider extends React.Component {
       if (!this.props.enabledOne) {
         return;
       }
-
 
       const accumDistance = this.props.vertical
         ? -gestureState.dy
@@ -353,6 +354,10 @@ export default class MultiSlider extends React.Component {
       this.props.sliderLength,
     );
 
+    setTimeout(() => {
+      console.log('end one');
+    }, 1000);
+
     this.setState(
       {
         pastOne: this.props.smoothSnapped ? snapped : this.state.positionOne,
@@ -483,6 +488,17 @@ export default class MultiSlider extends React.Component {
       const markerStyle = (this.props.hidePreviousSteps && this.state.valueOne > number) ? 
         { opacity: 0 } :
         { opacity: 1 };
+
+      const { previousResults } = this.props;
+
+      const isPreviousResultsExists = previousResults && previousResults >= index; 
+
+      const previousResultStepMarkerStyle = isPreviousResultsExists ? [ styles.previousResultStepMarker, {
+        opacity: this.state.valueOne > index ? 0 : 1
+      }] : null;
+
+      const previousResultStepStyle = isPreviousResultsExists ? styles.previousResultStep : null;
+
       return (
         <View
           key={number}
@@ -490,10 +506,11 @@ export default class MultiSlider extends React.Component {
             styles.step,
             this.props.stepStyle,
             { left: stepLength * index },
+            previousResultStepStyle
           ]}
         >
           {this.props.showStepMarkers && (
-              <View style={[markerStyles, markerStyle]} />
+              <View style={[markerStyles, markerStyle, previousResultStepMarkerStyle]} />
             )}
           {this.props.showStepLabels && (
             <Text
@@ -581,15 +598,31 @@ export default class MultiSlider extends React.Component {
               this.props.trackStyle,
               trackTwoStyle,
               { width: trackTwoLength },
+              
             ]}
             {...(twoMarkers ? this._panResponderBetween.panHandlers : {})}
           />
+          {this.props.previousResults ? (
+            <View
+              style={[
+                styles.track,
+                this.props.trackStyle,
+                { 
+                  width: (sliderLength + 5) * (this.props.previousResults / 4) ,
+                  borderWidth: 2,
+                  borderColor: '#F0CF3E', 
+                  position: 'absolute', 
+                  left: 0,
+                  zIndex: 0
+                }
+              ]}
+            />
+          ) : null}
           {twoMarkers && (
             <View
               style={[
                 styles.track,
                 this.props.trackStyle,
-                trackThreeStyle,
                 { width: trackThreeLength },
               ]}
             />
@@ -775,11 +808,21 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: '#0000008c',
     borderRadius: 3,
-    elevation: 7
+    elevation: 700,
+    zIndex: 2
   },
   stepLabel: {
     position: 'absolute',
     top: 15,
     color: '#333',
   },
+  previousResultStep: {
+    zIndex: 1, 
+    elevation: 2,
+  },
+  previousResultStepMarker: {
+    borderColor: '#F0CF3E', 
+    borderWidth: 2, 
+    opacity: 1,
+  }
 });
