@@ -121,6 +121,8 @@ export default class MultiSlider extends React.Component {
       pastTwo: initialValues[1],
       positionOne: initialValues[0],
       positionTwo: initialValues[1],
+      showPrevResultTooltip: false,
+      showTooltipCount: 0
     };
 
     this.subscribePanResponder();
@@ -178,8 +180,15 @@ export default class MultiSlider extends React.Component {
     if (this.props.enabledOne) {
       this.props.onValuesChangeStart();
       this.setState({
-        onePressed: !this.state.onePressed,
+        onePressed: !this.state.onePressed
       });
+
+      if(this.props.previousResults && this.state.showTooltipCount < 1) {
+        this.setState({
+          showPrevResultTooltip: !this.state.showPrevResultTooltip,
+          showTooltipCount: ++this.state.showTooltipCount
+        })
+      }
     }
   };
 
@@ -355,8 +364,10 @@ export default class MultiSlider extends React.Component {
     );
 
     setTimeout(() => {
-      console.log('end one');
-    }, 1000);
+      this.setState({
+        showPrevResultTooltip: false,
+      });
+    }, 3000);
 
     this.setState(
       {
@@ -493,8 +504,10 @@ export default class MultiSlider extends React.Component {
 
       const isPreviousResultsExists = previousResults && previousResults >= index; 
 
+      const previousResultsMarkerOpacity = this.state.valueOne > index && (previousResults && previousResults !== index) ? 0 : 1;
+
       const previousResultStepMarkerStyle = isPreviousResultsExists ? [ styles.previousResultStepMarker, {
-        opacity: this.state.valueOne > index ? 0 : 1
+        opacity: previousResultsMarkerOpacity
       }] : null;
 
       const previousResultStepStyle = isPreviousResultsExists ? styles.previousResultStep : null;
@@ -575,6 +588,18 @@ export default class MultiSlider extends React.Component {
 
     const containerStyle = [styles.container, this.props.containerStyle];
 
+    const renderPrevResultTooltip = () => {
+      const { previousResults } = this.props;
+      const left = previousResults === 4 ? (sliderLength - 90) : (sliderLength - 80) * (previousResults / 4);
+      return (
+        <View style={[styles.prevResultTooltipContainer, { left }]}>
+          <Text style={styles.prevResultTooltip}>
+            previous result
+          </Text>
+        </View>
+      );
+    }
+
     if (this.props.vertical) {
       containerStyle.push({
         transform: [{ rotate: '-90deg' }],
@@ -603,20 +628,23 @@ export default class MultiSlider extends React.Component {
             {...(twoMarkers ? this._panResponderBetween.panHandlers : {})}
           />
           {this.props.previousResults ? (
-            <View
-              style={[
-                styles.track,
-                this.props.trackStyle,
-                { 
-                  width: (sliderLength + 5) * (this.props.previousResults / 4) ,
-                  borderWidth: 2,
-                  borderColor: '#F0CF3E', 
-                  position: 'absolute', 
-                  left: 0,
-                  zIndex: 0
-                }
-              ]}
-            />
+            <>
+              <View
+                style={[
+                  styles.track,
+                  this.props.trackStyle,
+                  { 
+                    width: (sliderLength + 5) * (this.props.previousResults / 4) ,
+                    borderWidth: 2,
+                    borderColor: '#F0CF3E', 
+                    position: 'absolute', 
+                    left: 0,
+                    zIndex: 0
+                  }
+                ]}
+              />
+              {this.state.showPrevResultTooltip && renderPrevResultTooltip()}
+            </>
           ) : null}
           {twoMarkers && (
             <View
@@ -786,11 +814,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
-    elevation: 1000
+    zIndex: 10,
+    elevation: 10
   },
   topMarkerContainer: {
-    zIndex: 1,
+    zIndex: 100,
   },
   touch: {
     backgroundColor: 'transparent',
@@ -817,12 +845,26 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   previousResultStep: {
-    zIndex: 1, 
+    zIndex: 10, 
     elevation: 2,
   },
   previousResultStepMarker: {
     borderColor: '#F0CF3E', 
     borderWidth: 2, 
     opacity: 1,
+    zIndex: 100
+  },
+  prevResultTooltipContainer: {
+    position: 'absolute', 
+    backgroundColor: 'white', 
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    top: 20,
+    borderRadius: 10
+  },
+  prevResultTooltip: {
+    letterSpacing: -0.41,
+    textTransform: 'uppercase',
+    fontSize: 9
   }
 });
